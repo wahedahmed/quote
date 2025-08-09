@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>عرض سعر</title>
+  <link rel="stylesheet" href="assets/styles.css" />
+</head>
+<body class="proposal" data-plan="1">
+  <header class="topbar no-print">
+    <div class="l">
+      <button class="btn" id="btnReset" title="جديد">جديد</button>
+      <a class="btn" href="archive.html">الأرشيف</a>
+    </div>
+    <div class="r">
+      <button class="btn" id="btnLoad">فتح</button>
+      <button class="btn" id="btnSave">حفظ</button>
+      <button class="btn" id="btnArchive" title="حفظ نسخة في الأرشيف">أرشِف</button>
+      <button class="btn primary" id="btnPrint">طباعة / PDF</button>
+    </div>
+  </header>
+
+  <main class="paper">
+    <!-- رأس -->
+    <section class="hero">
+      <div class="brand">
+        <img id="logoImg" alt="Logo" style="display:none" />
+        <label class="btn ghost no-print">
+          شعار
+          <input type="file" id="logoInput" accept="image/*" hidden />
+        </label>
+      </div>
+      <div class="title">
+        <h1>عرض سعر</h1>
+        <p>خدمة نظافة متخصصة</p>
+      </div>
+    </section>
+
+    <!-- معلومات -->
+    <section class="meta grid-3">
+      <div class="mc">
+        <label>التاريخ</label>
+        <input type="date" id="qDate" />
+      </div>
+      <div class="mc">
+        <label>الموقع</label>
+        <input type="text" id="qPlace" placeholder="الرياض - حي النخيل" />
+      </div>
+      <div class="mc print-hide">
+        <label>الحالة</label>
+        <select id="qStatus">
+          <option value="active">شغّال</option>
+          <option value="inactive">مش شغّال</option>
+        </select>
+      </div>
+      <div class="mc">
+        <label>العميل</label>
+        <input type="text" id="qClient" placeholder="اسم العميل" />
+      </div>
+    </section>
+
+    <!-- بنود -->
+    <section>
+      <h2 class="sec">البنود</h2>
+      <ul id="bullets" class="bullets"></ul>
+      <div class="row gap no-print">
+        <input id="newItem" class="flex-1" placeholder="أضف بندًا..." />
+        <button class="btn" id="addItem">+ إضافة</button>
+        <button class="btn danger" id="clearItems">مسح</button>
+      </div>
+    </section>
+
+    <!-- مبالغ -->
+    <section class="card">
+      <div class="rowline">
+        <span>المجموع</span>
+        <span class="num">
+          <input type="number" id="qSubTotal" step="0.01" value="0" min="0" />
+          <select id="qCurrency"><option>SAR</option><option>AED</option><option>USD</option><option>EGP</option><option>EUR</option></select>
+        </span>
+      </div>
+
+      <div class="rowline">
+        <span>الخصم</span>
+        <span class="num">
+          <input type="number" id="qDiscount" step="0.01" value="0" min="0" style="width:140px" />
+          <select id="qDiscountType"><option value="amount">مبلغ</option><option value="percent">%</option></select>
+        </span>
+      </div>
+
+      <div class="rowline">
+        <span>ضريبة</span>
+        <span class="num">
+          <select id="qTaxMode" style="width:160px">
+            <option value="exclusive">غير شاملة</option>
+            <option value="inclusive">شاملة</option>
+          </select>
+          <input type="number" id="qTax" step="0.01" value="15" min="0" style="width:100px;margin-inline-start:8px" />
+        </span>
+      </div>
+
+      <div class="rowline subtle">
+        <span>قيمة الضريبة</span>
+        <strong class="num"><span id="qTaxValue">0.00</span> <span id="qCurOut1">SAR</span></strong>
+      </div>
+
+      <div class="rowline total">
+        <span>الإجمالي</span>
+        <strong class="num big"><span id="qFinal">0.00</span> <span id="qCurOut">SAR</span></strong>
+      </div>
+    </section>
+
+    <!-- الدفعات -->
+    <section id="paymentsSec" class="card">
+      <h3 class="sec">الدفعات</h3>
+      <div class="row gap">
+        <label class="inline">
+          <span>عدد الدفعات</span>
+          <select id="qPayPlan">
+            <option value="1">دفعة واحدة</option>
+            <option value="2">دفعتان</option>
+          </select>
+        </label>
+        <div id="planFields" class="row gap"></div>
+      </div>
+
+      <table class="tbl print-hide" id="paymentsTable">
+        <thead><tr><th>#</th><th>النسبة %</th><th>المبلغ</th></tr></thead>
+        <tbody id="qAmtTable"></tbody>
+        <tfoot>
+          <tr><th colspan="2" style="text-align:right">الإجمالي</th>
+              <th class="num"><span id="qFinalFoot">0.00</span> <span class="qCur">SAR</span></th></tr>
+        </tfoot>
+      </table>
+
+      <!-- يظهر في الطباعة فقط لو الخطة = دفعتين -->
+      <div id="paySummary" class="print-only" style="display:none"></div>
+    </section>
+
+    <!-- بيانات دفع -->
+    <section class="grid-2">
+      <div class="card">
+        <h3 class="sec">صلاحيّة</h3>
+        <label class="inline">
+          <input type="checkbox" id="qValidityChk" checked />
+          <span>ساري لمدة</span>
+          <input id="qValidity" type="number" value="30" min="1" style="width:70px" />
+          <span>يوم من تاريخ العرض</span>
+        </label>
+      </div>
+
+      <div class="card">
+        <h3 class="sec">الدفع</h3>
+        <div class="kv"><div>المستفيد:</div><input id="qPayTo" value="شركة التنظيف الخاص" /></div>
+        <div class="kv"><div>IBAN:</div><input id="qIBAN" value="SA6880000611608016250970" /></div>
+        <div class="kv"><div>الحساب:</div><input id="qAcct" value="الراجحي — 611000010006086250970" /></div>
+      </div>
+    </section>
+
+    <!-- توقيع -->
+    <section class="sign grid-2">
+      <div class="kv"><div>المدير المسؤل:</div><input id="qSigner" value="أ. محمد علي" /></div>
+      <div class="kv"><div>هاتف:</div><input id="qSignerPhone" value="0500000000" /></div>
+    </section>
+  </main>
+  <script src="assets/config.js"></script>
+  <script src="assets/supa.js"></script>
+  <script src="assets/quote.js"></script>
+</body>
+</html>

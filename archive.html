@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>أرشيف العروض</title>
+  <link rel="stylesheet" href="assets/styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="l">
+      <a class="btn" href="index.html">← رجوع للعرض</a>
+    </div>
+    <div class="r">
+      <button class="btn" id="btnExport">تصدير CSV</button>
+    </div>
+  </header>
+
+  <main class="paper">
+    <h1 style="margin-top:0">الأرشيف</h1>
+
+    <section class="card">
+      <div class="grid-3">
+        <div class="mc">
+          <label>بحث بالاسم/الموقع</label>
+          <input type="text" id="qSearch" placeholder="العميل أو الموقع" />
+        </div>
+        <div class="mc">
+          <label>يوم محدد</label>
+          <input type="date" id="qDay" />
+        </div>
+        <div class="mc">
+          <label>شهر</label>
+          <input type="month" id="qMonth" />
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <div id="listWrap"></div>
+    </section>
+  </main>
+  <script src="assets/config.js"></script>
+  <script src="assets/supa.js"></script>
+  <script src="assets/archive.js"></script>
+
+</body>
+</html>
