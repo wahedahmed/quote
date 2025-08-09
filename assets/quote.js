@@ -8,7 +8,7 @@
   // مفاتيح المسودة (محليًا فقط)
   const KEY='quote_min_clean_v2';
 
-  // عناصر (كما هي)
+  // عناصر
   const qSubTotal=$('qSubTotal'), qCurrency=$('qCurrency'), qDiscount=$('qDiscount'), qDiscountType=$('qDiscountType');
   const qTaxMode=$('qTaxMode'), qTax=$('qTax'), qTaxValueOut=$('qTaxValue'), qFinalOut=$('qFinal'), qCurOut=$('qCurOut'), qCurOut1=$('qCurOut1'), qFinalFoot=$('qFinalFoot');
   const qPayPlan=$('qPayPlan'), planFields=$('planFields'), qAmtTable=$('qAmtTable');
@@ -17,6 +17,8 @@
   const bullets=$('bullets'), newItem=$('newItem'), addItem=$('addItem'), clearItems=$('clearItems');
 
   const qDate=$('qDate'), qPlace=$('qPlace'), qClient=$('qClient'), qStatus=$('qStatus');
+  const qUnitType=$('qUnitType');           // نوع الوحدة
+  const qUnits=$('qUnits');                  // عدد الوحدات (جديد)
   const logoInput=$('logoInput'), logoImg=$('logoImg');
   const qValidityChk=$('qValidityChk'), qValidity=$('qValidity');
   const qPayTo=$('qPayTo'), qIBAN=$('qIBAN'), qAcct=$('qAcct'), qSigner=$('qSigner'), qSignerPhone=$('qSignerPhone');
@@ -69,7 +71,8 @@
     return total;
   }
   [qSubTotal,qDiscount,qTax].forEach(el=> el?.addEventListener('input',()=>{ if(toNum(el.value)<0) el.value='0'; compute(); save(); }));
-  [qCurrency,qDiscountType,qTaxMode,qDate,qPlace,qClient,qStatus].forEach(el=> el?.addEventListener('change',()=>{ compute(); save(); }));
+  [qCurrency,qDiscountType,qTaxMode,qDate,qPlace,qClient,qStatus,qUnitType,qUnits]
+    .forEach(el=> el?.addEventListener('change',()=>{ compute(); save(); }));
 
   /* ====== الدفعات ====== */
   function buildPlanFields(count){
@@ -82,17 +85,16 @@
         <label class="inline"><span>الدفعة 1 %</span><input type="number" id="qPct_1" value="50" min="1" max="99" style="width:110px"/></label>
         <label class="inline"><span>الدفعة 2 %</span><input type="number" id="qPct_2" value="50" min="1" max="99" style="width:110px" disabled/></label>
       `;
-const p1Input = $('qPct_1');
-if (p1Input) {
-  p1Input.addEventListener('input', () => {
-    let p1 = clamp(toNum(p1Input.value), 1, 99);
-    p1Input.value = p1;
-    const p2Input = $('qPct_2');
-    if (p2Input) p2Input.value = 100 - p1;
-    compute(); save();
-  });
-}
-
+      const p1Input = $('qPct_1');
+      if (p1Input) {
+        p1Input.addEventListener('input', () => {
+          let p1 = clamp(toNum(p1Input.value), 1, 99);
+          p1Input.value = p1;
+          const p2Input = $('qPct_2');
+          if (p2Input) p2Input.value = 100 - p1;
+          compute(); save();
+        });
+      }
     }
   }
   function rebuildInstallments(total){
@@ -142,7 +144,12 @@ if (p1Input) {
   /* ====== حفظ المسودة (محلي) ====== */
   function serialize(){
     return {
-      date:qDate?.value||'', place:qPlace?.value||'', client:qClient?.value||'', status:qStatus?.value||'active',
+      date:qDate?.value||'',
+      place:qPlace?.value||'',
+      client:qClient?.value||'',
+      status:qStatus?.value||'active',
+      unitType:qUnitType?.value||'',
+      units:qUnits?.value||'1', // ← جديد: حفظ عدد الوحدات
       subtotal:qSubTotal.value, currency:qCurrency.value, discount:qDiscount.value, discountType:qDiscountType.value,
       taxMode:qTaxMode.value, tax:qTax.value, payPlan:qPayPlan.value, p1:$('qPct_1')?.value||'',
       valid:qValidityChk?.checked||false, validDays:qValidity?.value||30,
@@ -160,6 +167,8 @@ if (p1Input) {
     try{
       const d=JSON.parse(raw);
       qDate.value=d.date||''; qPlace.value=d.place||''; qClient.value=d.client||''; if(qStatus) qStatus.value=d.status||'active';
+      if ($('qUnitType')) $('qUnitType').value = d.unitType || '';
+      if ($('qUnits')) $('qUnits').value = d.units || '1'; // ← جديد
       qSubTotal.value=d.subtotal??'0'; qCurrency.value=d.currency||'SAR';
       qDiscount.value=d.discount??'0'; qDiscountType.value=d.discountType||'amount';
       qTaxMode.value=d.taxMode||'exclusive'; qTax.value=d.tax??'15';
@@ -174,53 +183,54 @@ if (p1Input) {
   }
 
   /* ====== الأرشيف الدائم (Supabase) ====== */
-async function archiveSnapshot(){
-  if(!window.Supa) return alert('Supabase غير محمّل.');
-  const snap = serialize();
-  const total = compute();
-  const record = {
-    date: snap.date || null,
-    client: snap.client || null,
-    place: snap.place || null,
-    status: snap.status || 'active',
-    subtotal: toNum(snap.subtotal),
-    discount: toNum(snap.discount),
-    discount_type: snap.discountType,
-    tax_mode: snap.taxMode,
-    tax: toNum(snap.tax),
-    currency: snap.currency,
-    pay_plan: snap.payPlan==='2'?2:1,
-    p1: snap.p1? +snap.p1 : (snap.payPlan==='2'?50:100),
-    total: total,
-    valid: !!snap.valid,
-    valid_days: snap.validDays? +snap.validDays : 30,
-    pay_to: snap.payTo || null,
-    iban: snap.iban || null,
-    acct: snap.acct || null,
-    signer: snap.signer || null,
-    signer_phone: snap.signerPhone || null,
-    logo: snap.logo || null,
-    bullets: Array.isArray(snap.bullets) ? snap.bullets : [],
-    tenant: window.TENANT
-  };
+  async function archiveSnapshot(){
+    if(!window.Supa) return alert('Supabase غير محمّل.');
+    const snap = serialize();
+    const total = compute();
+    const record = {
+      date: snap.date || null,
+      client: snap.client || null,
+      place: snap.place || null,
+      status: snap.status || 'active',
+      unit_type: snap.unitType || null,
+      units_count: (snap.units? +snap.units : 1), // ← جديد
+      subtotal: toNum(snap.subtotal),
+      discount: toNum(snap.discount),
+      discount_type: snap.discountType,
+      tax_mode: snap.taxMode,
+      tax: toNum(snap.tax),
+      currency: snap.currency,
+      pay_plan: snap.payPlan==='2'?2:1,
+      p1: snap.p1? +snap.p1 : (snap.payPlan==='2'?50:100),
+      total: total,
+      valid: !!snap.valid,
+      valid_days: snap.validDays? +snap.validDays : 30,
+      pay_to: snap.payTo || null,
+      iban: snap.iban || null,
+      acct: snap.acct || null,
+      signer: snap.signer || null,
+      signer_phone: snap.signerPhone || null,
+      logo: snap.logo || null,
+      bullets: Array.isArray(snap.bullets) ? snap.bullets : [],
+      tenant: window.TENANT
+    };
 
-  try {
-    const editId = localStorage.getItem('quote_edit_id');
-    if(editId){
-      await Supa.update(editId, record);
-      alert('تم تحديث العرض في الأرشيف ✅');
-      localStorage.removeItem('quote_edit_id'); // مسح بعد التحديث
-    } else {
-      record.created_at = new Date().toISOString();
-      await Supa.insert(record);
-      alert('تمت الأرشفة في القاعدة ✅');
+    try {
+      const editId = localStorage.getItem('quote_edit_id');
+      if(editId){
+        await Supa.update(editId, record);
+        alert('تم تحديث العرض في الأرشيف ✅');
+        localStorage.removeItem('quote_edit_id');
+      } else {
+        record.created_at = new Date().toISOString();
+        await Supa.insert(record);
+        alert('تمت الأرشفة في القاعدة ✅');
+      }
+    } catch(err) {
+      console.error(err);
+      alert('تعذّرت العملية. تحقق من config.js وصلاحيات Supabase.');
     }
-  } catch(err) {
-    console.error(err);
-    alert('تعذّرت العملية. تحقق من config.js وصلاحيات Supabase.');
   }
-}
-
 
   btnArchive?.addEventListener('click',()=>{ archiveSnapshot(); });
 
@@ -229,4 +239,8 @@ async function archiveSnapshot(){
   if(!qPayPlan.value) qPayPlan.value='1';
   buildPlanFields(qPayPlan.value);
   compute();
+
+  // تحسين بسيط: لو داخل وضع تعديل غيّر نص الزر
+  const editId = localStorage.getItem('quote_edit_id');
+  if (editId && btnArchive) btnArchive.textContent = 'تحديث الأرشيف';
 })();

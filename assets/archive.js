@@ -16,14 +16,19 @@
       if(mk!==m) return false;
     }
     if(s){
-      const t=((x.client||'')+' '+(x.place||'')).toLowerCase();
+      // البحث يشمل العميل + الموقع + نوع الوحدة + عدد الوحدات
+      const t=(
+        (x.client||'')+' '+
+        (x.place||'')+' '+
+        (x.unit_type||'')+' '+
+        String(x.units_count??'')
+      ).toLowerCase();
       if(!t.includes(s)) return false;
     }
     return true;
   }
 
   async function fetchRows(){
-    // بنجيب كل سجلات tenant ونفلتر في الكلاينت (كافي هنا)
     const rows = await Supa.select({});
     return rows.filter(passFilters);
   }
@@ -42,6 +47,8 @@
           <td>${x.date||'-'}</td>
           <td>${x.client||'-'}</td>
           <td>${x.place||'-'}</td>
+          <td>${x.unit_type || '-'}</td>
+          <td class="num">${x.units_count ?? '-'}</td>
           <td>${x.status==='active'?'شغّال':'مش شغّال'}</td>
           <td class="num">${fmt(x.total)} ${x.currency||''}</td>
           <td>
@@ -59,6 +66,7 @@
             <thead>
               <tr>
                 <th>#</th><th>التاريخ</th><th>العميل</th><th>الموقع</th>
+                <th>نوع الوحدة</th><th>عدد الوحدات</th>
                 <th>الحالة</th><th>الإجمالي</th><th>إجراءات</th>
               </tr>
             </thead>
@@ -66,28 +74,28 @@
           </table>
         </div>`;
 
-      // فتح سجل في المسودة ثم الرجوع لصفحة العرض
-// فتح سجل في المسودة ثم الرجوع لصفحة العرض
-listWrap.querySelectorAll('button[data-act="open"]').forEach(btn=>{
-  btn.addEventListener('click', async (e)=>{
-    const id = +e.target.closest('tr')?.dataset.id;
-    const data = await fetchRows();
-    const item = data.find(r=>r.id===id);
-    if(!item) return;
+      // فتح سجل في المسودة
+      listWrap.querySelectorAll('button[data-act="open"]').forEach(btn=>{
+        btn.addEventListener('click', async (e)=>{
+          const id = +e.target.closest('tr')?.dataset.id;
+          const data = await fetchRows();
+          const item = data.find(r=>r.id===id);
+          if(!item) return;
 
-    const clone = {
-      date:item.date, client:item.client, place:item.place, status:item.status,
-      subtotal:item.subtotal, currency:item.currency, discount:item.discount, discountType:item.discount_type,
-      taxMode:item.tax_mode, tax:item.tax, payPlan:String(item.pay_plan||1), p1:String(item.p1||''),
-      valid:item.valid, validDays:item.valid_days, payTo:item.pay_to, iban:item.iban, acct:item.acct,
-      signer:item.signer, signerPhone:item.signer_phone, bullets:item.bullets||[], logo:item.logo||''
-    };
-    localStorage.setItem('quote_min_clean_v2', JSON.stringify(clone));
-    localStorage.setItem('quote_edit_id', String(item.id)); // ← مهم: وضع تعديل
-    location.href = 'index.html';
-  });
-});
-
+          const clone = {
+            date:item.date, client:item.client, place:item.place, status:item.status,
+            unitType:item.unit_type || '',
+            units: String(item.units_count ?? '1'),
+            subtotal:item.subtotal, currency:item.currency, discount:item.discount, discountType:item.discount_type,
+            taxMode:item.tax_mode, tax:item.tax, payPlan:String(item.pay_plan||1), p1:String(item.p1||''),
+            valid:item.valid, validDays:item.valid_days, payTo:item.pay_to, iban:item.iban, acct:item.acct,
+            signer:item.signer, signerPhone:item.signer_phone, bullets:item.bullets||[], logo:item.logo||''
+          };
+          localStorage.setItem('quote_min_clean_v2', JSON.stringify(clone));
+          localStorage.setItem('quote_edit_id', String(item.id));
+          location.href = 'index.html';
+        });
+      });
 
       // حذف
       listWrap.querySelectorAll('button[data-act="del"]').forEach(btn=>{
@@ -113,11 +121,20 @@ listWrap.querySelectorAll('button[data-act="open"]').forEach(btn=>{
   btnExport.addEventListener('click', async ()=>{
     try{
       const data = await fetchRows();
-      const header = ['id','created_at','date','client','place','status','subtotal','discount','discount_type','tax_mode','tax','currency','pay_plan','p1','total'];
-      const rows = data.map(x=> header.map(h=> (''+(x[h]??'')).replaceAll('"','""')).map(v=> `"${v}"`).join(','));
+      const header = [
+        'id','created_at','date','client','place','unit_type','units_count',
+        'status','subtotal','discount','discount_type','tax_mode','tax',
+        'currency','pay_plan','p1','total'
+      ];
+      const rows = data.map(x=> header
+        .map(h=> (''+(x[h]??'')).replaceAll('"','""'))
+        .map(v=> `"${v}"`).join(',')
+      );
       const csv = header.join(',')+'\n'+rows.join('\n');
-      const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'}); const url = URL.createObjectURL(blob);
-      const a=document.createElement('a'); a.href=url; a.download='quotes_archive.csv'; document.body.appendChild(a); a.click();
+      const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+      const url = URL.createObjectURL(blob);
+      const a=document.createElement('a'); a.href=url; a.download='quotes_archive.csv';
+      document.body.appendChild(a); a.click();
       setTimeout(()=>{ document.body.removeChild(a); URL.revokeObjectURL(url); },0);
     }catch(err){
       console.error(err); alert('تعذّر التصدير.');
