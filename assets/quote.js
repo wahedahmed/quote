@@ -134,20 +134,7 @@ if (p1Input) {
     rd.onload=()=>{ logoImg.src=rd.result; logoImg.style.display='block'; save(); };
     rd.readAsDataURL(f);
   });
-btnPrint?.addEventListener('click', () => {
-  const { jsPDF } = window.jspdf;
-  const pdf = new jsPDF('p', 'pt', 'a4');
-
-  pdf.html(document.querySelector('.paper'), {
-    callback: function (doc) {
-      doc.save('عرض_سعر.pdf');
-    },
-    margin: [10, 10, 10, 10],
-    autoPaging: 'text',
-    html2canvas: { scale: 0.7 }
-  });
-});
-
+  btnPrint?.addEventListener('click',()=>window.print());
   btnSave?.addEventListener('click',()=>{ save(); alert('تم حفظ المسودة محليًا.'); });
   btnLoad?.addEventListener('click',()=>{ load(); compute(); alert('تم فتح المسودة.'); });
   btnReset?.addEventListener('click',()=>{ if(confirm('بدء نموذج جديد؟')){ localStorage.removeItem(KEY); location.reload(); } });
