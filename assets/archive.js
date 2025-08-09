@@ -67,24 +67,27 @@
         </div>`;
 
       // فتح سجل في المسودة ثم الرجوع لصفحة العرض
-      listWrap.querySelectorAll('button[data-act="open"]').forEach(btn=>{
-        btn.addEventListener('click', async (e)=>{
-          const id = +e.target.closest('tr')?.dataset.id;
-          const data = await fetchRows();
-          const item = data.find(r=>r.id===id);
-          if(!item) return;
+// فتح سجل في المسودة ثم الرجوع لصفحة العرض
+listWrap.querySelectorAll('button[data-act="open"]').forEach(btn=>{
+  btn.addEventListener('click', async (e)=>{
+    const id = +e.target.closest('tr')?.dataset.id;
+    const data = await fetchRows();
+    const item = data.find(r=>r.id===id);
+    if(!item) return;
 
-          const clone = {
-            date:item.date, client:item.client, place:item.place, status:item.status,
-            subtotal:item.subtotal, currency:item.currency, discount:item.discount, discountType:item.discount_type,
-            taxMode:item.tax_mode, tax:item.tax, payPlan:String(item.pay_plan||1), p1:String(item.p1||''),
-            valid:item.valid, validDays:item.valid_days, payTo:item.pay_to, iban:item.iban, acct:item.acct,
-            signer:item.signer, signerPhone:item.signer_phone, bullets:item.bullets||[], logo:item.logo||''
-          };
-          localStorage.setItem('quote_min_clean_v2', JSON.stringify(clone));
-          location.href = 'index.html';
-        });
-      });
+    const clone = {
+      date:item.date, client:item.client, place:item.place, status:item.status,
+      subtotal:item.subtotal, currency:item.currency, discount:item.discount, discountType:item.discount_type,
+      taxMode:item.tax_mode, tax:item.tax, payPlan:String(item.pay_plan||1), p1:String(item.p1||''),
+      valid:item.valid, validDays:item.valid_days, payTo:item.pay_to, iban:item.iban, acct:item.acct,
+      signer:item.signer, signerPhone:item.signer_phone, bullets:item.bullets||[], logo:item.logo||''
+    };
+    localStorage.setItem('quote_min_clean_v2', JSON.stringify(clone));
+    localStorage.setItem('quote_edit_id', String(item.id)); // ← مهم: وضع تعديل
+    location.href = 'index.html';
+  });
+});
+
 
       // حذف
       listWrap.querySelectorAll('button[data-act="del"]').forEach(btn=>{

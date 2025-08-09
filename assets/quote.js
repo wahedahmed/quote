@@ -174,43 +174,53 @@ if (p1Input) {
   }
 
   /* ====== الأرشيف الدائم (Supabase) ====== */
-  async function archiveSnapshot(){
-    if(!window.Supa) return alert('Supabase غير محمّل.');
-    const snap = serialize();
-    const total = compute();
-    const record = {
-      created_at: new Date().toISOString(),
-      date: snap.date || null,
-      client: snap.client || null,
-      place: snap.place || null,
-      status: snap.status || 'active',
-      subtotal: toNum(snap.subtotal),
-      discount: toNum(snap.discount),
-      discount_type: snap.discountType,
-      tax_mode: snap.taxMode,
-      tax: toNum(snap.tax),
-      currency: snap.currency,
-      pay_plan: snap.payPlan==='2'?2:1,
-      p1: snap.p1? +snap.p1 : (snap.payPlan==='2'?50:100),
-      total: total,
-      valid: !!snap.valid,
-      valid_days: snap.validDays? +snap.validDays : 30,
-      pay_to: snap.payTo || null,
-      iban: snap.iban || null,
-      acct: snap.acct || null,
-      signer: snap.signer || null,
-      signer_phone: snap.signerPhone || null,
-      logo: snap.logo || null,
-      bullets: Array.isArray(snap.bullets) ? snap.bullets : []
-    };
-    try{
+async function archiveSnapshot(){
+  if(!window.Supa) return alert('Supabase غير محمّل.');
+  const snap = serialize();
+  const total = compute();
+  const record = {
+    date: snap.date || null,
+    client: snap.client || null,
+    place: snap.place || null,
+    status: snap.status || 'active',
+    subtotal: toNum(snap.subtotal),
+    discount: toNum(snap.discount),
+    discount_type: snap.discountType,
+    tax_mode: snap.taxMode,
+    tax: toNum(snap.tax),
+    currency: snap.currency,
+    pay_plan: snap.payPlan==='2'?2:1,
+    p1: snap.p1? +snap.p1 : (snap.payPlan==='2'?50:100),
+    total: total,
+    valid: !!snap.valid,
+    valid_days: snap.validDays? +snap.validDays : 30,
+    pay_to: snap.payTo || null,
+    iban: snap.iban || null,
+    acct: snap.acct || null,
+    signer: snap.signer || null,
+    signer_phone: snap.signerPhone || null,
+    logo: snap.logo || null,
+    bullets: Array.isArray(snap.bullets) ? snap.bullets : [],
+    tenant: window.TENANT
+  };
+
+  try {
+    const editId = localStorage.getItem('quote_edit_id');
+    if(editId){
+      await Supa.update(editId, record);
+      alert('تم تحديث العرض في الأرشيف ✅');
+      localStorage.removeItem('quote_edit_id'); // مسح بعد التحديث
+    } else {
+      record.created_at = new Date().toISOString();
       await Supa.insert(record);
       alert('تمت الأرشفة في القاعدة ✅');
-    }catch(err){
-      console.error(err);
-      alert('تعذّرت الأرشفة. تحقق من config.js و صلاحيات Supabase.');
     }
+  } catch(err) {
+    console.error(err);
+    alert('تعذّرت العملية. تحقق من config.js وصلاحيات Supabase.');
   }
+}
+
 
   btnArchive?.addEventListener('click',()=>{ archiveSnapshot(); });
 

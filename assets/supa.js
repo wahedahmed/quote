@@ -51,3 +51,20 @@
 
   window.Supa = { select: supaSelect, insert: supaInsert, del: supaDelete };
 })();
+
+
+async function supaUpdate(id, obj){
+  obj.tenant = window.TENANT;
+  const url = new URL(`${window.SUPA_URL}/rest/v1/quotes_archive`);
+  url.searchParams.set('id', `eq.${id}`);
+  url.searchParams.set('tenant', `eq.${window.TENANT}`);
+  const res = await fetch(url, {
+    method: 'PATCH',
+    headers: hdr(),
+    body: JSON.stringify(obj)
+  });
+  if (!res.ok) throw new Error('Update failed');
+  return res.json();
+}
+
+window.Supa = { select: supaSelect, insert: supaInsert, del: supaDelete, update: supaUpdate };
