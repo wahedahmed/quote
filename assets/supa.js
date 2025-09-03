@@ -248,11 +248,18 @@
 
   /**
    * دالة إدراج سجل جديد في قاعدة البيانات
+   * @param {string} table - اسم الجدول
    * @param {Object} obj - كائن البيانات المراد إدراجه
    * @returns {Promise<Array>} مصفوفة تحتوي على السجل المُدرج
    * @throws {Error} في حالة فشل العملية أو عدم صحة البيانات
    */
-  async function supaInsert(obj) {
+  async function supaInsert(table, obj) {
+    // إذا تم استدعاء الدالة بمعامل واحد فقط (للتوافق مع النسخة القديمة)
+    if (typeof table === 'object' && !obj) {
+      obj = table;
+      table = 'quotes_archive';
+    }
+    
     return await retryOperation(async () => {
       try {
         // التحقق من صحة البيانات
@@ -270,22 +277,55 @@
         // إضافة معرف المستأجر
         const dataToInsert = { ...obj, tenant: window.TENANT };
         
-        console.log('💾 جاري حفظ البيانات...', { client: dataToInsert.client, date: dataToInsert.date });
+        console.log('💾 جاري حفظ البيانات...', { table, tenant: window.TENANT, id: dataToInsert.id });
         
-        const response = await fetch(`${window.SUPA_URL}/rest/v1/quotes_archive`, {
+        // إنشاء headers محسنة لـ RLS
+        const headers = {
+          ...hdr(),
+          'X-Client-Info': `tenant=${window.TENANT}`,
+          'X-Tenant-ID': window.TENANT,
+          'Authorization': `Bearer ${window.SUPA_ANON_KEY}`
+        };
+        
+        const response = await fetch(`${window.SUPA_URL}/rest/v1/${table}`, {
           method: 'POST',
-          headers: hdr(),
+          headers: headers,
           body: JSON.stringify(dataToInsert),
           signal: AbortSignal.timeout(15000) // مهلة 15 ثانية للحفظ
         });
         
-        await validateResponse(response, 'حفظ البيانات');
+        // معالجة خاصة لأخطاء RLS
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          
+          if (response.status === 401 && errorData.code === '42501') {
+            console.error('❌ خطأ Row Level Security:', errorData);
+            throw new Error(`خطأ في صلاحيات الوصول: تأكد من إعداد سياسة RLS للمستأجر '${window.TENANT}' في جدول '${table}'`);
+          }
+          
+          if (errorData.message) {
+            throw new Error(errorData.message);
+          }
+          
+          throw new Error(`خطأ HTTP ${response.status}: ${response.statusText}`);
+        }
+        
         const result = await response.json();
         
         console.log('✅ تم الحفظ بنجاح، ID:', result[0]?.id);
         return result;
         
       } catch (error) {
+        // معالجة محسنة لأخطاء RLS
+        if (error.message.includes('row-level security') || error.message.includes('42501')) {
+          console.error('❌ مشكلة Row Level Security:', {
+            tenant: window.TENANT,
+            table: table,
+            error: error.message
+          });
+          throw new Error(`خطأ في صلاحيات الوصول للجدول '${table}'. تحقق من إعداد سياسة RLS للمستأجر '${window.TENANT}'`);
+        }
+        
         throw handleError(error, 'حفظ البيانات');
       }
     });
