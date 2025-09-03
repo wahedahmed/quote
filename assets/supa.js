@@ -353,8 +353,51 @@
     });
   }
 
+  /**
+   * دالة جلب سجل واحد بالمعرف من قاعدة البيانات
+   * @param {number|string} id - معرف السجل المطلوب
+   * @returns {Promise<Object|null>} السجل المطلوب أو null إذا لم يوجد
+   * @throws {Error} في حالة فشل العملية أو عدم صحة المعرف
+   */
+  async function supaGetById(id) {
+    return await retryOperation(async () => {
+      try {
+        // التحقق من صحة المعاملات
+        if (!id || (!Number.isInteger(+id) && +id <= 0)) {
+          throw new Error('معرف السجل غير صحيح');
+        }
+        
+        if (!window.SUPA_URL || !window.TENANT) {
+          throw new Error('إعدادات Supabase غير مكتملة');
+        }
+        
+        const url = new URL(`${window.SUPA_URL}/rest/v1/quotes_archive`);
+        url.searchParams.set('id', `eq.${id}`);
+        url.searchParams.set('tenant', `eq.${window.TENANT}`);
+        url.searchParams.set('limit', '1');
+        
+        console.log('🔍 جاري جلب السجل...', { id });
+        
+        const response = await fetch(url, { 
+          headers: hdr(),
+          signal: AbortSignal.timeout(10000) // مهلة 10 ثواني
+        });
+        
+        await validateResponse(response, 'جلب السجل');
+        const data = await response.json();
+        
+        const record = data.length > 0 ? data[0] : null;
+        console.log('✅ تم جلب السجل:', record ? 'موجود' : 'غير موجود');
+        return record;
+        
+      } catch (error) {
+        throw handleError(error, 'جلب السجل');
+      }
+    });
+  }
+
   /* ====== التصدير للنافذة العامة ====== */
   
   // تصدير الدوال للاستخدام في باقي التطبيق
-  window.Supa = { select: supaSelect, insert: supaInsert, update: supaUpdate, del: supaDelete };
+  window.Supa = { select: supaSelect, insert: supaInsert, update: supaUpdate, del: supaDelete, getById: supaGetById };
 })();

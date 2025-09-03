@@ -23,14 +23,14 @@
  * @type {string}
  * @description احصل على هذه القيمة من Supabase Project Settings > API
  */
-window.SUPA_URL = "https://jdinqogokmhrlwcxaqii.supabase.co";
+window.SUPA_URL = "https://onhtwpgywttemhggqqpa.supabase.co";
 
 /**
  * مفتاح Supabase العام (Anonymous Key)
  * @type {string}
  * @description احصل على هذه القيمة من Supabase Project Settings > API
  */
-window.SUPA_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpkaW5xb2dva21ocmx3Y3hhcWlpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ3NDE0MjQsImV4cCI6MjA3MDMxNzQyNH0.neyJR3Cr-dMkyIasajfXDEWOsxg8T_0fOildc_pOwUE";
+window.SUPA_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9uaHR3cGd5d3R0ZW1oZ2dxcXBhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY4NjM5ODYsImV4cCI6MjA3MjQzOTk4Nn0.O8gWJI_yWVewTVfdfVLzmn-3t71vkMYmmyg2L09-p98";
 
 /**
  * معرف المستأجر (Tenant ID)

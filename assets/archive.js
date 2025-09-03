@@ -304,17 +304,7 @@
               return;
             }
 
-            const clone = {
-              date:item.date, client:item.client, place:item.place, status:item.status,
-              unitType:item.unit_type || '',
-              units: String(item.units_count ?? '1'),
-              subtotal:item.subtotal, currency:item.currency, discount:item.discount, discountType:item.discount_type,
-              taxMode:item.tax_mode, tax:item.tax, payPlan:String(item.pay_plan||1), p1:String(item.p1||''),
-              valid:item.valid, validDays:item.valid_days, payTo:item.pay_to, iban:item.iban, acct:item.acct,
-              signer:item.signer, signerPhone:item.signer_phone, bullets:item.bullets||[], logo:item.logo||''
-            };
-            localStorage.setItem('quote_min_clean_v2', JSON.stringify(clone));
-            localStorage.setItem('quote_edit_id', String(item.id));
+            sessionStorage.setItem('quote_edit_id', String(item.id));
             hideLoading();
             location.href = 'index.html';
           } catch (error) {

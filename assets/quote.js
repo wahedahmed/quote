@@ -31,8 +31,7 @@
   const clamp = (n,min,max)=>Math.max(min,Math.min(max,n));  // تحديد القيمة ضمن نطاق معين
   const money = (n)=> (Math.round(n*100)/100).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});  // تنسيق المبالغ المالية
 
-  // ====== إعدادات التخزين المحلي ======
-  const KEY='quote_min_clean_v2';  // مفتاح حفظ المسودة محلياً
+
 
   // ====== عناصر واجهة المستخدم ======
   
@@ -424,63 +423,9 @@
   
   // ربط أحداث الأزرار الرئيسية
   btnPrint?.addEventListener('click',()=>window.print());
-  btnSave?.addEventListener('click',()=>{ save(); alert('تم حفظ المسودة محليًا.'); });
-  btnLoad?.addEventListener('click',()=>{ load(); compute(); alert('تم فتح المسودة.'); });
-  btnReset?.addEventListener('click',()=>{ if(confirm('بدء نموذج جديد؟')){ localStorage.removeItem(KEY); location.reload(); } });
+  btnReset?.addEventListener('click',()=>{ if(confirm('بدء نموذج جديد؟')){ location.reload(); } });
 
-  /* ====== حفظ وتحميل المسودة المحلية ====== */
-  
-  /**
-   * تحويل بيانات النموذج إلى كائن قابل للحفظ
-   * @returns {Object} - كائن يحتوي على جميع بيانات النموذج
-   */
-  function serialize(){
-    return {
-      date:qDate?.value||'',
-      place:qPlace?.value||'',
-      client:qClient?.value||'',
-      status:qStatus?.value||'active',
-      unitType:qUnitType?.value||'',
-      units:qUnits?.value||'1', // حفظ عدد الوحدات
-      subtotal:qSubTotal.value, currency:qCurrency.value, discount:qDiscount.value, discountType:qDiscountType.value,
-      taxMode:qTaxMode.value, tax:qTax.value, payPlan:qPayPlan.value, p1:$('qPct_1')?.value||'',
-      valid:qValidityChk?.checked||false, validDays:qValidity?.value||30,
-      payTo:qPayTo?.value||'', iban:qIBAN?.value||'', acct:qAcct?.value||'',
-      signer:qSigner?.value||'', signerPhone:qSignerPhone?.value||'',
-      bullets:[...bullets.querySelectorAll('li')].map(li => li.querySelector('.txt')?.textContent ?? li.textContent),
-      logo: (logoImg?.src && logoImg.style.display!=='none') ? logoImg.src : ''
-    };
-  }
-  
-  /**
-   * حفظ البيانات في التخزين المحلي
-   */
-  function save(){ try{ localStorage.setItem(KEY, JSON.stringify(serialize())); } catch(e){ console.error(e); } }
-  
-  /**
-   * تحميل البيانات من التخزين المحلي وملء النموذج
-   */
-  function load(){
-    const raw=localStorage.getItem(KEY);
-    bullets.innerHTML='';
-    if(!raw){ defaultBullets.forEach(addBullet); return; }
-    try{
-      const d=JSON.parse(raw);
-      qDate.value=d.date||''; qPlace.value=d.place||''; qClient.value=d.client||''; if(qStatus) qStatus.value=d.status||'active';
-      if ($('qUnitType')) $('qUnitType').value = d.unitType || '';
-      if ($('qUnits')) $('qUnits').value = d.units || '1';
-      qSubTotal.value=d.subtotal??'0'; qCurrency.value=d.currency||'SAR';
-      qDiscount.value=d.discount??'0'; qDiscountType.value=d.discountType||'amount';
-      qTaxMode.value=d.taxMode||'exclusive'; qTax.value=d.tax??'15';
-      qPayPlan.value=(d.payPlan==='2'?'2':'1'); buildPlanFields(qPayPlan.value);
-      if(d.p1 && $('qPct_1')) $('qPct_1').value=d.p1;
-      qValidityChk.checked=!!d.valid; qValidity.value=d.validDays??30;
-      qPayTo.value=d.payTo||''; qIBAN.value=d.iban||''; qAcct.value=d.acct||'';
-      qSigner.value=d.signer||''; qSignerPhone.value=d.signerPhone||'';
-      if (d.bullets && d.bullets.length) d.bullets.forEach(addBullet); else defaultBullets.forEach(addBullet);
-      if(d.logo){ logoImg.src=d.logo; logoImg.style.display='block'; }
-    }catch(e){ console.error(e); }
-  }
+
 
   /* ====== مؤشرات التحميل والرسائل ====== */
   
@@ -596,7 +541,7 @@
       return;
     }
 
-    const editId = localStorage.getItem('quote_edit_id');
+    const editId = sessionStorage.getItem('quote_edit_id');
     const isUpdate = !!editId;
     
     try {
@@ -635,7 +580,7 @@
       if (isUpdate) {
         await Supa.update(editId, record);
         showSuccess('تم تحديث العرض في الأرشيف بنجاح');
-        localStorage.removeItem('quote_edit_id');
+        sessionStorage.removeItem('quote_edit_id');
         // تحديث نص الزر
         if (btnArchive) btnArchive.textContent = 'أرشفة العرض';
       } else {
@@ -643,9 +588,7 @@
         await Supa.insert(record);
         showSuccess('تمت أرشفة العرض في القاعدة بنجاح');
       }
-      
-      // حفظ المسودة المحلية أيضاً
-      save();
+
       
     } catch (err) {
       console.error('خطأ في الأرشفة:', err);
@@ -739,14 +682,73 @@
 
   /* ====== تهيئة التطبيق ====== */
   
-  // تحميل البيانات المحفوظة وتهيئة النموذج
-  load();
-  if(!qPayPlan.value) qPayPlan.value='1';
-  buildPlanFields(qPayPlan.value);
-  compute();
-  addRealTimeValidation(); // تفعيل التحقق في الوقت الفعلي
-
-  // تحديث نص زر الأرشفة إذا كان في وضع التعديل
-  const editId = localStorage.getItem('quote_edit_id');
-  if (editId && btnArchive) btnArchive.textContent = 'تحديث الأرشيف';
+  // تهيئة النموذج
+  async function initializeApp() {
+    const editId = sessionStorage.getItem('quote_edit_id');
+    
+    if (editId) {
+      // تحميل البيانات من قاعدة البيانات للتعديل
+      try {
+        showLoading('جاري تحميل البيانات...');
+        const record = await Supa.getById(editId);
+        if (record) {
+          // ملء النموذج بالبيانات المحملة
+          qDate.value = record.date || '';
+          qPlace.value = record.place || '';
+          qClient.value = record.client || '';
+          if (qStatus) qStatus.value = record.status || 'active';
+          if ($('qUnitType')) $('qUnitType').value = record.unit_type || '';
+          if ($('qUnits')) $('qUnits').value = String(record.units_count || '1');
+          qSubTotal.value = record.subtotal || '0';
+          qCurrency.value = record.currency || 'SAR';
+          qDiscount.value = record.discount || '0';
+          qDiscountType.value = record.discount_type || 'amount';
+          qTaxMode.value = record.tax_mode || 'exclusive';
+          qTax.value = record.tax || '15';
+          qPayPlan.value = String(record.pay_plan || '1');
+          buildPlanFields(qPayPlan.value);
+          if (record.p1 && $('qPct_1')) $('qPct_1').value = String(record.p1);
+          qValidityChk.checked = !!record.valid;
+          qValidity.value = record.valid_days || '30';
+          qPayTo.value = record.pay_to || '';
+          qIBAN.value = record.iban || '';
+          qAcct.value = record.acct || '';
+          qSigner.value = record.signer || '';
+          qSignerPhone.value = record.signer_phone || '';
+          
+          // تحميل النقاط
+          bullets.innerHTML = '';
+          if (record.bullets && record.bullets.length) {
+            record.bullets.forEach(addBullet);
+          } else {
+            defaultBullets.forEach(addBullet);
+          }
+          
+          // تحميل الشعار
+          if (record.logo) {
+            logoImg.src = record.logo;
+            logoImg.style.display = 'block';
+          }
+          
+          // تحديث نص الزر
+          if (btnArchive) btnArchive.textContent = 'تحديث الأرشيف';
+        }
+        hideLoading();
+      } catch (error) {
+        hideLoading();
+        showError('خطأ في تحميل البيانات: ' + error.message);
+      }
+    } else {
+      // تهيئة عادية للنموذج الجديد
+      defaultBullets.forEach(addBullet);
+    }
+    
+    if (!qPayPlan.value) qPayPlan.value = '1';
+    buildPlanFields(qPayPlan.value);
+    compute();
+    addRealTimeValidation();
+  }
+  
+  // بدء التهيئة
+  initializeApp();
 })();

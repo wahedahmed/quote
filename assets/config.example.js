@@ -4,12 +4,12 @@
 // تأكد من إضافة config.js إلى .gitignore لمنع رفعه للمستودع
 
 // إعدادات Supabase - احصل على هذه القيم من Supabase Project Settings
-window.SUPA_URL = "YOUR_SUPABASE_URL_HERE"; // مثال: "https://xxxxx.supabase.co"
-window.SUPA_ANON_KEY = "YOUR_SUPABASE_ANON_KEY_HERE"; // المفتاح العام للمشروع
+window.SUPA_URL = "https://onhtwpgywttemhggqqpa.supabase.co"; // مثال: "https://xxxxx.supabase.co"
+window.SUPA_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9uaHR3cGd5d3R0ZW1oZ2dxcXBhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY4NjM5ODYsImV4cCI6MjA3MjQzOTk4Nn0.O8gWJI_yWVewTVfdfVLzmn-3t71vkMYmmyg2L09-p98"; // المفتاح العام للمشروع
 
 // معرف المستأجر - يستخدم للفصل بين أرشيفات مشاريعك المختلفة
 // يمكنك تغيير هذا النص ليناسب مشروعك
-window.TENANT = "your-project-name"; // مثال: "cleaning-company-2024"
+window.TENANT = "quote"; // مثال: "cleaning-company-2024"
 
 // إعدادات إضافية
 window.APP_CONFIG = {
