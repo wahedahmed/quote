@@ -14,7 +14,7 @@
  * - التحقق من صحة البيانات المدخلة
  * - رسائل خطأ واضحة باللغة العربية
  * - حفظ المسودات محلياً
- * - أرشفة البيانات في قاعدة البيانات
+ * - حفظ البيانات في قاعدة البيانات
  * 
  * ميزات واجهة المستخدم:
  * - مؤشرات التحميل
@@ -89,7 +89,7 @@
   const btnSave=$('btnSave');            // زر الحفظ
   const btnLoad=$('btnLoad');            // زر التحميل
   const btnReset=$('btnReset');          // زر إعادة التعيين
-  const btnArchive=$('btnArchive');      // زر الأرشفة
+  const btnArchive=$('btnArchive');      // زر الحفظ
 
   // ====== البنود الافتراضية لخدمات التنظيف ======
   const defaultBullets = [
@@ -507,10 +507,10 @@
     document.body.appendChild(errorEl);
   }
 
-  /* ====== الأرشيف الدائم (Supabase) ====== */
-  
-  /**
-   * أرشفة عرض السعر في قاعدة البيانات
+  /* ====== الحفظ في قاعدة البيانات (Supabase) ====== */
+
+/**
+ * حفظ عرض السعر في قاعدة البيانات
    * يتضمن التحقق من صحة البيانات والحفظ في Supabase
    */
   async function archiveSnapshot() {
@@ -546,7 +546,7 @@
     
     try {
       // إظهار مؤشر التحميل
-      showLoading(isUpdate ? 'جاري تحديث العرض...' : 'جاري حفظ العرض في الأرشيف...');
+      showLoading(isUpdate ? 'جاري تحديث العرض...' : 'جاري حفظ العرض في قاعدة البيانات...');
       
       const total = compute();
       const record = {
@@ -579,19 +579,19 @@
 
       if (isUpdate) {
         await Supa.update(editId, record);
-        showSuccess('تم تحديث العرض في الأرشيف بنجاح');
+        showSuccess('تم تحديث العرض في قاعدة البيانات بنجاح');
         sessionStorage.removeItem('quote_edit_id');
         // تحديث نص الزر
-        if (btnArchive) btnArchive.textContent = 'أرشفة العرض';
+        if (btnArchive) btnArchive.textContent = 'حفظ العرض';
       } else {
         record.created_at = new Date().toISOString();
         await Supa.insert(record);
-        showSuccess('تمت أرشفة العرض في القاعدة بنجاح');
+        showSuccess('تم حفظ العرض في قاعدة البيانات بنجاح');
       }
 
       
     } catch (err) {
-      console.error('خطأ في الأرشفة:', err);
+      console.error('خطأ في الحفظ:', err);
       let errorMessage = 'تعذّرت عملية الحفظ. ';
       
       if (err.message) {
@@ -604,7 +604,7 @@
     }
   }
 
-  // ربط حدث زر الأرشفة
+  // ربط حدث زر الحفظ
   btnArchive?.addEventListener('click',()=>{ archiveSnapshot(); });
 
   /* ====== التحقق من صحة البيانات في الوقت الفعلي ====== */
@@ -731,7 +731,7 @@
           }
           
           // تحديث نص الزر
-          if (btnArchive) btnArchive.textContent = 'تحديث الأرشيف';
+          if (btnArchive) btnArchive.textContent = 'تحديث العرض';
         }
         hideLoading();
       } catch (error) {
