@@ -507,6 +507,65 @@
     document.body.appendChild(errorEl);
   }
 
+  /* ====== تجميع البيانات من النموذج ======
+  
+  /**
+   * دالة تجميع جميع البيانات من النموذج
+   * @returns {Object} كائن يحتوي على جميع بيانات العرض
+   */
+  function serialize() {
+     // جمع بيانات البنود
+     const bullets = [];
+     $$('#bullets li').forEach(li => {
+       const span = li.querySelector('.txt');
+       if (span && span.textContent.trim()) {
+         bullets.push(span.textContent.trim());
+       }
+     });
+     
+     // جمع بيانات الدفعات
+     const payPlan = qPayPlan?.value || '1';
+     const p1 = payPlan === '2' ? toNum($('qP1')?.value) || 50 : 100;
+     
+     return {
+       date: qDate?.value || new Date().toISOString().split('T')[0],
+       client: qClient?.value?.trim() || '',
+       place: qPlace?.value?.trim() || '',
+       status: qStatus?.value || 'active',
+       unitType: qUnitType?.value || null,
+       units: qUnits?.value || '1',
+       subtotal: qSubTotal?.value || '0',
+       discount: qDiscount?.value || '0',
+       discountType: qDiscountType?.value || 'amount',
+       taxMode: qTaxMode?.value || 'exclusive',
+       tax: qTax?.value || '15',
+       currency: qCurrency?.value || 'SAR',
+       payPlan: payPlan,
+       p1: p1,
+       valid: qValidityChk?.checked || false,
+       validDays: qValidity?.value || '30',
+       payTo: qPayTo?.value?.trim() || null,
+       iban: qIBAN?.value?.trim() || null,
+       acct: qAcct?.value?.trim() || null,
+       signer: qSigner?.value?.trim() || null,
+       signerPhone: qSignerPhone?.value?.trim() || null,
+       logo: logoImg?.src || null,
+       bullets: bullets
+     };
+   }
+  
+  /**
+   * حفظ البيانات محلياً في localStorage
+   */
+  function save() {
+    try {
+      const data = serialize();
+      localStorage.setItem('quote_draft', JSON.stringify(data));
+    } catch (error) {
+      console.warn('خطأ في حفظ المسودة:', error);
+    }
+  }
+
   /* ====== الحفظ في قاعدة البيانات (Supabase) ====== */
 
 /**
@@ -514,10 +573,20 @@
    * يتضمن التحقق من صحة البيانات والحفظ في Supabase
    */
   async function archiveSnapshot() {
+    console.log('🔄 بدء عملية الحفظ...');
+    
     if (!window.Supa) {
+      console.error('❌ Supabase غير محمّل');
       showError('Supabase غير محمّل. تحقق من إعدادات الاتصال.');
       return;
     }
+    
+    console.log('✅ Supabase محمّل بنجاح');
+    console.log('📊 إعدادات Supabase:', {
+      url: window.SUPA_URL ? 'موجود' : 'مفقود',
+      key: window.SUPA_ANON_KEY ? 'موجود' : 'مفقود',
+      tenant: window.TENANT
+    });
 
     // التحقق الشامل من صحة البيانات
     const validationErrors = validateAllFields();
@@ -545,10 +614,13 @@
     const isUpdate = !!editId;
     
     try {
+      console.log('📝 بدء تجهيز البيانات للحفظ...');
+      
       // إظهار مؤشر التحميل
       showLoading(isUpdate ? 'جاري تحديث العرض...' : 'جاري حفظ العرض في قاعدة البيانات...');
       
       const total = compute();
+      console.log('💰 المبلغ الإجمالي المحسوب:', total);
       const record = {
         date: snap.date || null,
         client: snap.client.trim(),
@@ -577,21 +649,33 @@
         tenant: window.TENANT
       };
 
+      console.log('📦 البيانات المُجهزة للحفظ:', record);
+      
       if (isUpdate) {
-        await Supa.update(editId, record);
+        console.log('🔄 تحديث سجل موجود، ID:', editId);
+        const result = await Supa.update(editId, record);
+        console.log('✅ نتيجة التحديث:', result);
         showSuccess('تم تحديث العرض في قاعدة البيانات بنجاح');
         sessionStorage.removeItem('quote_edit_id');
         // تحديث نص الزر
         if (btnArchive) btnArchive.textContent = 'حفظ العرض';
       } else {
+        console.log('➕ إنشاء سجل جديد');
         record.created_at = new Date().toISOString();
-        await Supa.insert(record);
+        const result = await Supa.insert(record);
+        console.log('✅ نتيجة الإدراج:', result);
         showSuccess('تم حفظ العرض في قاعدة البيانات بنجاح');
       }
 
       
     } catch (err) {
-      console.error('خطأ في الحفظ:', err);
+      console.error('❌ خطأ في الحفظ:', err);
+      console.error('📋 تفاصيل الخطأ:', {
+        name: err.name,
+        message: err.message,
+        stack: err.stack
+      });
+      
       let errorMessage = 'تعذّرت عملية الحفظ. ';
       
       if (err.message) {
