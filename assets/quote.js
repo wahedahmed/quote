@@ -525,7 +525,7 @@
      
      // جمع بيانات الدفعات
      const payPlan = qPayPlan?.value || '1';
-     const p1 = payPlan === '2' ? toNum($('qP1')?.value) || 50 : 100;
+     const p1 = payPlan === '2' ? toNum($('qPct_1')?.value) || 50 : 100;
      
      return {
        date: qDate?.value || new Date().toISOString().split('T')[0],
@@ -535,20 +535,20 @@
        unitType: qUnitType?.value || null,
        units: qUnits?.value || '1',
        subtotal: qSubTotal?.value || '0',
+       currency: qCurrency?.value || 'SAR',
        discount: qDiscount?.value || '0',
        discountType: qDiscountType?.value || 'amount',
        taxMode: qTaxMode?.value || 'exclusive',
        tax: qTax?.value || '15',
-       currency: qCurrency?.value || 'SAR',
        payPlan: payPlan,
        p1: p1,
        valid: qValidityChk?.checked || false,
        validDays: qValidity?.value || '30',
-       payTo: qPayTo?.value?.trim() || null,
-       iban: qIBAN?.value?.trim() || null,
-       acct: qAcct?.value?.trim() || null,
-       signer: qSigner?.value?.trim() || null,
-       signerPhone: qSignerPhone?.value?.trim() || null,
+       payTo: qPayTo?.value || null,
+       iban: qIBAN?.value || null,
+       acct: qAcct?.value || null,
+       signer: qSigner?.value || null,
+       signerPhone: qSignerPhone?.value || null,
        logo: logoImg?.src || null,
        bullets: bullets
      };

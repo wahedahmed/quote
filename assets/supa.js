@@ -51,11 +51,15 @@
     if (!window.SUPA_ANON_KEY) {
       throw new Error('مفتاح Supabase غير موجود. تحقق من ملف config.js');
     }
+    if (!window.TENANT) {
+      throw new Error('معرف المستأجر غير موجود. تحقق من ملف config.js');
+    }
     return {
       'apikey': window.SUPA_ANON_KEY,
       'Authorization': `Bearer ${window.SUPA_ANON_KEY}`,
       'Content-Type': 'application/json',
-      'Prefer': 'return=representation'
+      'Prefer': 'return=representation',
+      'X-Client-Info': `tenant=${window.TENANT}`
     };
   };
   
@@ -220,6 +224,29 @@
   }
 
   /**
+   * إعداد معرف المستأجر في جلسة Supabase
+   * @returns {Promise<void>}
+   */
+  async function setTenantContext() {
+    try {
+      const response = await fetch(`${window.SUPA_URL}/rest/v1/rpc/set_config`, {
+        method: 'POST',
+        headers: hdr(),
+        body: JSON.stringify({
+          parameter_name: 'app.current_tenant',
+          parameter_value: window.TENANT
+        })
+      });
+      
+      if (!response.ok) {
+        console.warn('⚠️ تعذر إعداد معرف المستأجر في الجلسة');
+      }
+    } catch (error) {
+      console.warn('⚠️ خطأ في إعداد معرف المستأجر:', error.message);
+    }
+  }
+
+  /**
    * دالة إدراج سجل جديد في قاعدة البيانات
    * @param {Object} obj - كائن البيانات المراد إدراجه
    * @returns {Promise<Array>} مصفوفة تحتوي على السجل المُدرج
@@ -236,6 +263,9 @@
         if (!window.SUPA_URL || !window.TENANT) {
           throw new Error('إعدادات Supabase غير مكتملة');
         }
+        
+        // إعداد معرف المستأجر في الجلسة
+        await setTenantContext();
         
         // إضافة معرف المستأجر
         const dataToInsert = { ...obj, tenant: window.TENANT };
