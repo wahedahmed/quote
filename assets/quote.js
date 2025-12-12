@@ -93,9 +93,9 @@
 
   // ====== البنود الافتراضية لخدمات التنظيف ======
   const defaultBullets = [
-    "تنظيف الأبواب","تنظيف الجدران","تنظيف وجلي الأرضيات","تنظيف الزجاج والألمنيوم",
-    "تنظيف المطابخ","تنظيف مفاتيح الكهرباء","تنظيف دورات المياه","تنظيف السطح الخارجي",
-    "تنظيف الحوش","تنظيف الخزان العلوي","تنظيف الخزان الأرضي"
+    "تنظيف الأبواب","تنظيف الجدران","تنظيف الأرضيات","تنظيف الزجاج والألمنيوم",
+    "تنظيف المطابخ","تنظيف مفاتيح الكهرباء","تنظيف دورات المياه", "تنظيف الواجهات الخارجيه ","تنظيف السطح الخارجي",
+    "تنظيف الحوش","تنظيف اللمبات "
   ];
 
   /* ====== وظائف التحقق من صحة البيانات ====== */
@@ -400,7 +400,15 @@
    */
   function buildPrintSummary(total){
     const count = qPayPlan.value==='2'?2:1;
-    if(count===1){ paySummary.style.display='none'; return; }
+    if(count===1){
+      const a1 = total;
+      paySummary.style.display='block';
+      paySummary.innerHTML = `
+        <strong>ملخص الدفعات:</strong>
+        دفعة واحدة: 100% = ${money(a1)} ${qCurrency.value}
+      `;
+      return;
+    }
     const p1=clamp(toNum($('qPct_1').value||50),1,99), p2=100-p1;
     const a1= total*(p1/100), a2= total-a1;
     paySummary.style.display='block';
@@ -413,13 +421,13 @@
 
   /* ====== إدارة الشعار والملفات ====== */
   
-  // رفع وعرض الشعار
-  logoInput?.addEventListener('change',(e)=>{
-    const f=e.target.files?.[0]; if(!f) return;
-    const rd=new FileReader();
-    rd.onload=()=>{ logoImg.src=rd.result; logoImg.style.display='block'; save(); };
-    rd.readAsDataURL(f);
-  });
+  // // رفع وعرض الشعار
+  // logoInput?.addEventListener('change',(e)=>{
+  //   const f=e.target.files?.[0]; if(!f) return;
+  //   const rd=new FileReader();
+  //   rd.onload=()=>{ logoImg.src=rd.result; logoImg.style.display='block'; save(); };
+  //   rd.readAsDataURL(f);
+  // });
   
   // ربط أحداث الأزرار الرئيسية
   btnPrint?.addEventListener('click',()=>window.print());

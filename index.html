@@ -10,11 +10,8 @@
   <header class="topbar no-print">
     <div class="l">
       <button class="btn" id="btnReset" title="جديد">جديد</button>
-      <a class="btn" href="archive.html">الأرشيف</a>
     </div>
     <div class="r">
-
-      <button class="btn" id="btnArchive" title="حفظ العرض في قاعدة البيانات">حفظ</button>
       <button class="btn primary" id="btnPrint">طباعة / PDF</button>
     </div>
   </header>
@@ -23,16 +20,16 @@
     <!-- رأس -->
     <section class="hero">
       <div class="brand">
-        <img id="logoImg" alt="Logo" style="display:none" />
-        <label class="btn ghost no-print">
-          شعار
-          <input type="file" id="logoInput" accept="image/*" hidden />
-        </label>
+        <img src="assets/img/logo.png" alt="Logo" style="max-height:80px; object-fit:contain;" />
+       
+      
       </div>
+     <h1 >عرض سعر</h1>
       <div class="title">
-        <h1>عرض سعر</h1>
-        <p> حلول النظافة المتخصصة والشامله  </p>
-      </div>
+      
+<p class="lol">نظافة واكثر ✅</p>   
+<p class="lol2">نهتم بأدق التفاصيل</p>
+   </div>
     </section>
 
     <!-- معلومات -->
@@ -45,38 +42,27 @@
         <label>الموقع</label>
         <input type="text" id="qPlace" placeholder="الرياض - حي النخيل" title="موقع تنفيذ الخدمة (مطلوب)" />
       </div>
-      <div class="mc print-hide">
+      <!-- <div class="mc print-hide">
         <label>الحالة</label>
         <select id="qStatus">
           <option value="active">شغّال</option>
           <option value="inactive">مش شغّال</option>
         </select>
-      </div>
+      </div> -->
 
       <div class="mc">
         <label>العميل</label>
         <input type="text" id="qClient" placeholder="اسم العميل" title="اسم العميل أو الشركة (مطلوب)" />
       </div>
 
-      <div class="mc">
-        <label>نوع الوحدة</label>
-        <select id="qUnitType" title="نوع المكان المراد تنظيفه">
-          <option value="">— اختر —</option>
-          <option>منزل</option>
-          <option>شقة</option>
-          <option>شركة</option>
-          <option>مكتب</option>
-          <option>محل</option>
-          <option>مطعم</option>
-          <option>جراج</option>
-          <option>قصر</option>
-          <option>فيلا</option>
-          <option>استراحة</option>
-        </select>
-      </div>
+<div class="mc">
+  <label>نوع الوحدة</label>
+  <input type="text" id="qUnitType" placeholder="اكتب نوع الوحدة (مثال: شقة، فيلا، مكتب...)" title="نوع المكان المراد تنظيفه" />
+</div>
+
 
       <div class="mc">
-        <label>عدد الوحدات</label>
+        <label>العدد  </label>
         <input type="number" id="qUnits" min="1" value="1" title="عدد الوحدات المراد تنظيفها (يجب أن يكون أكبر من صفر)" />
       </div>
     </section>
@@ -102,7 +88,7 @@
         </span>
       </div>
 
-      <div class="rowline">
+      <div class="rowline ">
         <span>الخصم</span>
         <span class="num">
           <input type="number" id="qDiscount" step="0.01" value="0" min="0" style="width:140px" title="قيمة الخصم (مبلغ ثابت أو نسبة مئوية)" />
@@ -110,7 +96,7 @@
         </span>
       </div>
 
-      <div class="rowline">
+      <div class="rowline ">
         <span>ضريبة</span>
         <span class="num">
           <select id="qTaxMode" style="width:160px" title="طريقة حساب الضريبة: شاملة أو غير شاملة">
@@ -121,7 +107,7 @@
         </span>
       </div>
 
-      <div class="rowline subtle">
+      <div class="rowline subtle ">
         <span>قيمة الضريبة</span>
         <strong class="num"><span id="qTaxValue">0.00</span> <span id="qCurOut1">SAR</span></strong>
       </div>
@@ -155,7 +141,6 @@
         </tfoot>
       </table>
 
-      <!-- يظهر في الطباعة فقط لو الخطة = دفعتين -->
       <div id="paySummary" class="print-only" style="display:none"></div>
     </section>
 
@@ -173,20 +158,22 @@
 
       <div class="card">
         <h3 class="sec">الدفع</h3>
-        <div class="kv"><div>المستفيد:</div><input id="qPayTo" value="شركة التنظيف الخاص" title="اسم المستفيد من الدفع" /></div>
-        <div class="kv"><div>IBAN:</div><input id="qIBAN" value="SA6880000611608016250970" title="رقم الآيبان للحساب البنكي (يجب أن يبدأ بـ SA)" /></div>
-        <div class="kv"><div>الحساب:</div><input id="qAcct" value="الراجحي — 611000010006086250970" title="تفاصيل الحساب البنكي" /></div>
+        <div class="kv"><div>المستفيد:</div><input id="qPayTo" value=" شركة التنظيف الخاص للصيانة والنظافة"  title="اسم المستفيد من الدفع" /></div>
+        <div class="kv"><div>IBAN:</div><input id="qIBAN" value="SA8310000020371057000103" title="رقم الآيبان للحساب البنكي (يجب أن يبدأ بـ SA)" /></div>
+        <div class="kv"><div>الحساب:</div><input id="qAcct" value="الاهلي السعودي — 20371057000103" title="تفاصيل الحساب البنكي" /></div>
       </div>
     </section>
 
     <!-- توقيع -->
     <section class="sign grid-2">
       <div class="kv"><div>المدير المسؤل:</div><input id="qSigner" value="أ. محمد علي" title="اسم المدير المسؤول عن العرض" /></div>
-      <div class="kv"><div>هاتف:</div><input id="qSignerPhone" value="0500000000" title="رقم هاتف المدير المسؤول (مثال: 0500000000)" /></div>
+      <div class="kv"><div>هاتف:</div><input id="qSignerPhone" value="0573804443" title="رقم هاتف المدير المسؤول (مثال: 0500000000)" /></div>
     </section>
   </main>
+
   <script src="assets/config.js"></script>
-  <script src="assets/supa.js"></script>
+  <script src="assets/mysql_config.js"></script>
+  <script src="assets/mysql.js"></script>
   <script src="assets/quote.js"></script>
 </body>
 </html>
